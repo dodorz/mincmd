@@ -6,21 +6,8 @@ Basically it is an AutoHotKey script which is used to create a mintty window wit
 
 ### Cygwin bash configuration:
 ```
---- Settings ---
-Replaces the "open commandprompt here" action in shift + rightclick menu (Windows 7)
-Ersetzt die "Kommandozeile hier öffnen" option im Shift + Rechtsklick Menü (Windows 7)
-registerContextMenu=false
-
-
 --- Environment ---
-First define Variables here before they can be added to PATH!
-Zuerst Umgebungsvariablen definieren, bevor sie der PATH-Variable hinzugefügt werden können!
-cygwinDir=%HOMEDRIVE%\cygwin64\bin
-prependPath=
 appendPath=%cygwinDir%
-
-Every single line without an equalsign can be a comment!
-Solange keine Gleichzeichen vorkommen, kann jede leere Zeile zum Kommentieren benutzt werden!
 
 
 --- Alias ---
