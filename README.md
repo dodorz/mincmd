@@ -7,6 +7,7 @@ Basically it is an AutoHotKey script which is used to create a mintty window wit
 ### Cygwin bash configuration:
 ```
 --- Environment ---
+cygwinDir=%HOMEDRIVE%\cygwin64\bin
 appendPath=%cygwinDir%
 
 
