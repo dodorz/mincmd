@@ -15,9 +15,9 @@ registerContextMenu=false
 --- Environment ---
 First define Variables here before they can be added to PATH!
 Zuerst Umgebungsvariablen definieren, bevor sie der PATH-Variable hinzugefügt werden können!
-cygwinDir=`%HOMEDRIVE`%\cygwin64\bin
+cygwinDir=%HOMEDRIVE%\cygwin64\bin
 prependPath=
-appendPath=`%cygwinDir`%
+appendPath=%cygwinDir%
 
 Every single line without an equalsign can be a comment!
 Solange keine Gleichzeichen vorkommen, kann jede leere Zeile zum Kommentieren benutzt werden!
@@ -28,9 +28,9 @@ name=bash
 type=cmd
 ----- AliasScript_Start -----
 @echo off
-pushd "`%cygwinDir`%\.."
-set "HOME=`%cd`%\home\`%USERNAME`%"
+pushd "%cygwinDir%\.."
+set "HOME=`%cd`%\home\%USERNAME%"
 popd
-"`%cygwinDir`%\bash" --login -i
+"%cygwinDir%\bash" --login -i
 ----- AliasScript_Stop -----
 ```
