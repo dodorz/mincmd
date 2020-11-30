@@ -17,7 +17,7 @@ type=cmd
 ----- AliasScript_Start -----
 @echo off
 pushd "%cygwinDir%\.."
-set "HOME=`%cd`%\home\%USERNAME%"
+set "HOME=%cd%\home\%USERNAME%"
 popd
 "%cygwinDir%\bash" --login -i
 ----- AliasScript_Stop -----
