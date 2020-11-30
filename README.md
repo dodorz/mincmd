@@ -39,7 +39,7 @@ You can configure the mintty window by right-clicking into it and choosing optio
 The clink configfile ("settings") will be created after starting mincmd for the first time. You can change it in the profile directory of mincmd.
 
 ### mincmd
-There is a configfile for mincmd called mincmd_settings.ini. You can change it in the profile directory. The default configfile is made to work on Windows 7 with cygwin installed. That means you can type `bash` and the cygwin bash opens. If you want to use the WSL shell instead you can go to the config file, which should look like this:
+There is a configfile for mincmd called mincmd_settings.ini. You can change it in the profile directory. The default configfile is made to work on Windows 7 with cygwin installed. That means you can type `bash` and the cygwin bash opens. If you want to use the WSL bash instead you can go to the config file, which should look like this:
 ```
 --- Settings ---
 registerContextMenu=false
