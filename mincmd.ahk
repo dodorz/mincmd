@@ -1,8 +1,22 @@
-﻿;#NoTrayIcon
+;#NoTrayIcon
 #NoEnv
 #SingleInstance, Force
 
 SetWorkingDir, %A_ScriptDir%
+
+/* First start setup
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Run this on first startup (if no files exist) ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+*/
+If (not FileExist("clink*.*") and not FileExist("cygwin1.dll") and not FileExist("mintty.exe") and not FileExist("winpty*.*"))
+{
+	DownloadLatestMintty()
+	DownloadLatestWinPty()
+	DownloadLatestClink()
+}
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 If (InStr(FileExist("profile"), "D"))
 {
@@ -258,3 +272,152 @@ checkProcess:
 If (not WinExist("ahk_exe mintty.exe ahk_class mintty"))
 	ExitApp
 return
+
+
+;;;;;;;;; Needed for first time setup ;;;;;;;;;;
+
+DownloadLatestClink()
+{
+	URLDownloadToFile, https://github.com/mridgers/clink/releases/latest, clink_version.html
+	
+	Loop, read, %A_ScriptDir%\clink_version.html
+	{
+		Loop, parse, A_LoopReadLine, %A_Tab%
+		{
+			If (RegExMatch(A_LoopReadLine, "Release.*[0-9.]+", clink_version) > 0)
+			{
+				found = true
+				RegExMatch(clink_version, "[0-9.]+", clink_version)
+				break
+			}
+		}
+		If (%found% == true)
+			break
+	}
+	
+	FileDelete, clink_version.html
+	URLDownloadToFile, https://github.com/mridgers/clink/releases/download/%clink_version%/clink_%clink_version%.zip, clink.zip
+	
+	Unzip("clink.zip")
+	FileDelete, clink.zip
+	
+	clinkDir = clink_%clink_version%
+	FileCopy, %clinkDir%\clink.lua, %A_ScriptDir%
+	FileCopy, %clinkDir%\clink_dll*.dll, %A_ScriptDir%
+	FileCopy, %clinkDir%\clink_x*.exe, %A_ScriptDir%
+	
+	FileRemoveDir, %clinkDir%, 1
+}
+
+DownloadLatestTarTool()
+{
+	URLDownloadToFile, https://github.com/senthilrajasek/tartool/releases/latest, tarTool_version.html
+	
+	Loop, read, %A_ScriptDir%\tarTool_version.html
+	{
+		Loop, parse, A_LoopReadLine, %A_Tab%
+		{
+			If (RegExMatch(A_LoopReadLine, "/.*TarTool.zip", tarTool_version) > 0)
+			{
+				found = true
+				;RegExMatch(tarTool_version, "[0-9.]+", tarTool_version)
+				break
+			}
+		}
+		If (%found% == true)
+			break
+	}
+	
+	FileDelete, tarTool_version.html
+	URLDownloadToFile, https://github.com%tarTool_version%, tarTool.zip
+	Unzip("tarTool.zip")
+	
+	FileDelete, tarTool.zip
+}
+
+DownloadLatestWinPty()
+{
+	URLDownloadToFile, https://github.com/rprichard/winpty/releases/latest, winPty_version.html
+	foundWinPty = false
+	foundCygWin = false
+	
+	Loop, read, %A_ScriptDir%\winPty_version.html
+	{
+		Loop, parse, A_LoopReadLine, %A_Tab%
+		{
+			If ((%foundWinPty% == false) and (RegExMatch(A_LoopReadLine, "Release.*[0-9.]+", winPty_version) > 0))
+			{
+				foundWinPty = true
+				RegExMatch(winPty_version, "[0-9.]+", winPty_version)
+				break
+			}
+			
+			If ((%foundCygWin% == false) and (RegExMatch(A_LoopReadLine, "cygwin-[0-9.]+", cygWin_version) > 0))
+			{
+				foundCygWin = true
+				RegExMatch(cygWin_version, "[0-9.]+", cygWin_version)
+				break
+			}
+		}
+		If (%foundWinPty% == true and %foundCygWin% == true)
+			break
+	}
+	
+	FileDelete, winPty_version.html
+	URLDownloadToFile, https://github.com/rprichard/winpty/releases/download/%winPty_version%/winpty-%winPty_version%-cygwin-%cygWin_version%-x64.tar.gz, winPty.tar.gz
+	
+	DownloadLatestTarTool()
+	RunWait, TarTool.exe winPty.tar.gz .\
+	
+	winPtyDir = winpty-%winPty_version%-cygwin-%cygWin_version%-x64
+	FileCopy, %winPtyDir%\bin\winpty.*, %A_ScriptDir%
+	FileCopy, %winPtyDir%\bin\winpty-agent.*, %A_ScriptDir%
+	
+	FileRemoveDir, %winPtyDir%, 1
+	FileDelete, winPty.tar.gz
+	FileDelete, TarTool.exe
+	FileDelete, ICSharpCode.SharpZipLib.dll
+}
+
+DownloadLatestMintty()
+{
+	URLDownloadToFile, https://github.com/mintty/wsltty/releases/latest, wslTty_version.html
+	
+	Loop, read, %A_ScriptDir%\wslTty_version.html
+	{
+		Loop, parse, A_LoopReadLine, %A_Tab%
+		{
+			If (RegExMatch(A_LoopReadLine, "Release.*[0-9.]+", wslTty_version) > 0)
+			{
+				foundwslTty = true
+				RegExMatch(wslTty_version, "[0-9.]+", wslTty_version)
+				break
+			}
+		}
+		If (%foundwslTty% == true)
+			break
+	}
+	
+	FileDelete, wslTty_version.html
+	
+	FileCreateDir, wsltty-%wslTty_version%-x86_64
+	SetWorkingDir, wsltty-%wslTty_version%-x86_64
+	
+	URLDownloadToFile, https://github.com/mintty/wsltty/releases/download/%wslTty_version%/wsltty-%wslTty_version%-x86_64.cab, wslTty.cab
+	Unzip("wslTty.cab")
+	SetWorkingDir, %A_ScriptDir%
+
+	wslTtyDir = wsltty-%wslTty_version%-x86_64
+	FileCopy, %wslTtyDir%\cygwin1.dll, %A_ScriptDir%
+	FileCopy, %wslTtyDir%\mintty.exe, %A_ScriptDir%
+	
+	FileRemoveDir, %wslTtyDir%, 1
+	FileDelete, wslTty.cab
+}
+
+Unzip(inputZipFile)
+{
+	inputZipFile = %A_WorkingDir%\%inputZipFile%
+	sh := ComObjCreate("Shell.Application")
+	sh.Namespace(A_WorkingDir).CopyHere(sh.Namespace(inputZipFile).items, 4|16)
+}
