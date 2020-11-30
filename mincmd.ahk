@@ -1,4 +1,4 @@
-;#NoTrayIcon
+#NoTrayIcon
 #NoEnv
 #SingleInstance, Force
 
@@ -14,17 +14,19 @@ If (not FileExist("clink*.*") and not FileExist("cygwin1.dll") and not FileExist
 	DownloadLatestMintty()
 	DownloadLatestWinPty()
 	DownloadLatestClink()
+	Sleep, 1000
 }
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-If (InStr(FileExist("profile"), "D"))
+If (not InStr(FileExist("profile"), "D"))
+	FileCreateDir, profile
+
+SetWorkingDir, profile
+If not FileExist("mincmd_settings.ini")
 {
-	SetWorkingDir, profile
-	If not FileExist("mincmd_settings.ini")
-	{
-		FileAppend,
-		(
+	FileAppend,
+	(
 --- Settings ---
 registerContextMenu=false
 
@@ -48,17 +50,9 @@ set "HOME=`%cd`%\home\`%USERNAME`%"
 popd
 "`%cygwinDir`%\bash" --login -i
 ----- AliasScript_Stop -----
-		), mincmd_settings.ini
-	}
-	SetWorkingDir, %A_ScriptDir%
+	), mincmd_settings.ini
 }
-else
-{
-	FileCreateDir, profile
-	SetWorkingDir, profile
-	FileAppend,, mincmd_settings.ini
-	SetWorkingDir, %A_ScriptDir%
-}
+SetWorkingDir, %A_ScriptDir%
 
 contextMenu = false
 
@@ -367,7 +361,7 @@ DownloadLatestWinPty()
 	URLDownloadToFile, https://github.com/rprichard/winpty/releases/download/%winPty_version%/winpty-%winPty_version%-cygwin-%cygWin_version%-x64.tar.gz, winPty.tar.gz
 	
 	DownloadLatestTarTool()
-	RunWait, TarTool.exe winPty.tar.gz .\
+	RunWait, TarTool.exe winPty.tar.gz .\,, Hide
 	
 	winPtyDir = winpty-%winPty_version%-cygwin-%cygWin_version%-x64
 	FileCopy, %winPtyDir%\bin\winpty.*, %A_ScriptDir%
