@@ -85,4 +85,4 @@ Solange keine Gleichzeichen vorkommen, kann jede leere Zeile zum Kommentieren be
  If you want to use the shift + right-click-menu shortcut, set `registerContextMenu=false` to `registerContextMenu=true` (not yet working properly).
  You can define your own environment variables after `--- Environment ---`.
  Set the `prependPath` or `appendPath` variable to add something to your PATH variable. You can also add variables set before.
- You can comment your configfile in every empty line. But you can't use equal signs in ypur configfile. They would mess up your environment variables.
+ You can comment your configfile in every empty line. But you can't use equal signs in your comments. They would mess up your environment variables.
