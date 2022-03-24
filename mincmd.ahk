@@ -9,7 +9,10 @@ SetWorkingDir, %A_ScriptDir%
 ;; Run this on first startup (if no files exist) ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 */
-If (not FileExist("clink*.*") and not FileExist("cygwin1.dll") and not FileExist("mintty.exe") and not FileExist("winpty*.*"))
+If (not InStr(FileExist("bin"), "D"))
+	FileCreateDir, bin
+
+If (not FileExist("bin\clink_x64.exe") and not FileExist("bin\clink_dll_x64.dll") and not FileExist("bin\cygwin1.dll") and not FileExist("bin\mintty.exe") and not FileExist("bin\winpty.exe") and not FileExist("bin\winpty.dll") and not FileExist("bin\winpty-agent.exe"))
 {
 	DownloadLatestMintty()
 	DownloadLatestWinPty()
@@ -23,7 +26,7 @@ If (not InStr(FileExist("profile"), "D"))
 	FileCreateDir, profile
 
 SetWorkingDir, profile
-If not FileExist("mincmd_settings.ini")
+If not FileExist("mincmd.ini")
 {
 	FileAppend,
 	(
@@ -33,7 +36,7 @@ registerContextMenu=false
 
 --- Environment ---
 Zuerst Umgebungsvariablen definieren, bevor sie der PATH-Variable hinzugefügt werden können!
-cygwinDir=`%HOMEDRIVE`%\cygwin64\bin
+cygwinDir=`%HOMEDRIVE`%\Tool\Cygwin\bin
 prependPath=
 appendPath=`%cygwinDir`%
 
@@ -45,12 +48,9 @@ name=bash
 type=cmd
 ----- AliasScript_Start -----
 @echo off
-pushd "`%cygwinDir`%\.."
-set "HOME=`%cd`%\home\`%USERNAME`%"
-popd
 "`%cygwinDir`%\bash" --login -i
 ----- AliasScript_Stop -----
-	), mincmd_settings.ini
+	), mincmd.ini
 }
 SetWorkingDir, %A_ScriptDir%
 
@@ -61,7 +61,7 @@ EnvSection = false
 AliasSection = false
 AliasScriptSection = false
 
-Loop, read, %A_ScriptDir%\profile\mincmd_settings.ini
+Loop, read, %A_ScriptDir%\profile\mincmd.ini
 {
     Loop, parse, A_LoopReadLine, %A_Tab%
     {
@@ -241,19 +241,19 @@ for n, param in A_Args
 clink_arch = x86
 If (A_Is64bitOS)
 	clink_arch = x64
-clinkExe = %A_ScriptDir%\clink_%clink_arch%.exe
+clinkExe = %A_ScriptDir%\bin\clink_%clink_arch%.exe
 
 EnvGet, cmdExe, ComSpec
 gosub, Start
 return
 
 !F2::
-If (WinActive("ahk_exe mintty.exe ahk_class mintty"))
+If (WinActive("ahk_exe bin\mintty.exe ahk_class mintty"))
 	gosub, Start
 return
 
 Start:
-Run, %A_ScriptDir%\mintty.exe -d -c "%A_ScriptDir%\profile\mintty_config.ini" -e "%A_ScriptDir%\winpty.exe" "%cmdExe%" %paramList% /K "%clinkExe%" inject && title %ComSpec%,,, minPID
+Run, %A_ScriptDir%\bin\mintty.exe -d -c "%A_ScriptDir%\profile\mintty.conf" -e "%A_ScriptDir%\bin\winpty.exe" "%cmdExe%" %paramList% /K "%clinkExe%" inject --profile "%A_ScriptDir%\profile" --quiet && title %ComSpec%,,, minPID
 
 while (not WinExist("ahk_exe mintty.exe ahk_class ConsoleWindowClass") and not WinExist("ahk_pid %minPID%"))
 	Sleep, 0 ; Do nothing. Just wait for window. Works better than wait for a hidden window to exist
@@ -263,7 +263,7 @@ SetTimer, checkProcess, 2000
 return
 
 checkProcess:
-If (not WinExist("ahk_exe mintty.exe ahk_class mintty"))
+If (not WinExist("ahk_exe bin\mintty.exe ahk_class mintty"))
 	ExitApp
 return
 
@@ -296,9 +296,9 @@ DownloadLatestClink()
 	FileDelete, clink.zip
 	
 	clinkDir = clink_%clink_version%
-	FileCopy, %clinkDir%\clink.lua, %A_ScriptDir%
-	FileCopy, %clinkDir%\clink_dll*.dll, %A_ScriptDir%
-	FileCopy, %clinkDir%\clink_x*.exe, %A_ScriptDir%
+	FileCopy, %clinkDir%\clink.lua, %A_ScriptDir%\bin
+	FileCopy, %clinkDir%\clink_dll*.dll, %A_ScriptDir%\bin
+	FileCopy, %clinkDir%\clink_x*.exe, %A_ScriptDir%\bin
 	
 	FileRemoveDir, %clinkDir%, 1
 }
@@ -327,6 +327,9 @@ DownloadLatestTarTool()
 	Unzip("tarTool.zip")
 	
 	FileDelete, tarTool.zip
+	
+	FileCopy, TarTool.exe, %A_ScriptDir%\bin
+	FileCopy, ICSharpCode.SharpZipLib.dll, %A_ScriptDir%\bin
 }
 
 DownloadLatestWinPty()
@@ -364,8 +367,8 @@ DownloadLatestWinPty()
 	RunWait, TarTool.exe winPty.tar.gz .\,, Hide
 	
 	winPtyDir = winpty-%winPty_version%-cygwin-%cygWin_version%-x64
-	FileCopy, %winPtyDir%\bin\winpty.*, %A_ScriptDir%
-	FileCopy, %winPtyDir%\bin\winpty-agent.*, %A_ScriptDir%
+	FileCopy, %winPtyDir%\bin\winpty.*, %A_ScriptDir%\bin
+	FileCopy, %winPtyDir%\bin\winpty-agent.*, %A_ScriptDir%\bin
 	
 	FileRemoveDir, %winPtyDir%, 1
 	FileDelete, winPty.tar.gz
@@ -402,9 +405,22 @@ DownloadLatestMintty()
 	SetWorkingDir, %A_ScriptDir%
 
 	wslTtyDir = wsltty-%wslTty_version%-x86_64
-	FileCopy, %wslTtyDir%\cygwin1.dll, %A_ScriptDir%
-	FileCopy, %wslTtyDir%\mintty.exe, %A_ScriptDir%
-	
+	FileCopy, %wslTtyDir%\cygwin1.dll, %A_ScriptDir%\bin
+	FileCopy, %wslTtyDir%\mintty.exe, %A_ScriptDir%\bin
+	FileCopy, %wslTtyDir%\zoo.exe, %A_ScriptDir%\bin
+	FileCreateDir, usr\share\mintty\lang
+	FileCopy, %wslTtyDir%\lang.zoo, %A_ScriptDir%\usr\share\mintty\lang
+	SetWorkingDir,  %A_ScriptDir%\usr\share\mintty\lang
+	Run, %A_ScriptDir%\bin\zoo.exe x lang.zoo,, Hide
+	FileCreateDir, usr\share\mintty\sounds
+	FileCopy, %wslTtyDir%\sounds.zoo, %A_ScriptDir%\usr\share\mintty\sounds
+	SetWorkingDir,  %A_ScriptDir%\usr\share\mintty\sounds
+	Run, %A_ScriptDir%\bin\zoo.exe x sounds.zoo,, Hide
+	FileCreateDir, usr\share\mintty\themes
+	FileCopy, %wslTtyDir%\themes.zoo, %A_ScriptDir%\usr\share\mintty\themes
+	SetWorkingDir,  %A_ScriptDir%\usr\share\mintty\themes
+	Run, %A_ScriptDir%\bin\zoo.exe x themes.zoo,, Hide
+	SetWorkingDir,  %A_ScriptDir%
 	FileRemoveDir, %wslTtyDir%, 1
 	FileDelete, wslTty.cab
 }
