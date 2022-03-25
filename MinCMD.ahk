@@ -35,13 +35,13 @@ registerContextMenu=false
 
 
 --- Environment ---
-Zuerst Umgebungsvariablen definieren, bevor sie der PATH-Variable hinzugefügt werden können!
+首先定义环境变量，然后才能把它们添加到PATH变量中去！
+
 cygwinDir=`%HOMEDRIVE`%\Tool\Cygwin\bin
 prependPath=
 appendPath=`%cygwinDir`%
 
-Solange keine Gleichzeichen vorkommen, kann jede leere Zeile zum Kommentieren benutzt werden!
-
+只要没有等号，任何空行都可以用来做注释！
 
 --- Alias ---
 name=bash
@@ -115,7 +115,7 @@ Loop, read, %A_ScriptDir%\profile\mincmd.ini
 				{
 					foundStr := SubStr(readLine, indexI, (indexII - indexI + 1))
 					envVar := StrReplace(foundStr, "%", "")
-					EnvGet, repStr, % envVar ; Evaluiere envVar zu Variablennamen aus Configfile und hole Umgebungsvariable. repStr := %envVar% bei internen Variablen
+					EnvGet, repStr, % envVar ; 对配置文件中的变量envVar求值，得到环境变量。 repStr := %envVar%，用于内部变量。
 					readLine := StrReplace(readLine, foundStr, repStr)
 				}
 				else
@@ -253,7 +253,7 @@ If (WinActive("ahk_exe bin\mintty.exe ahk_class mintty"))
 return
 
 Start:
-Run, %A_ScriptDir%\bin\mintty.exe -d -c "%A_ScriptDir%\profile\mintty.conf" -e "%A_ScriptDir%\bin\winpty.exe" "%cmdExe%" %paramList% /K "%clinkExe%" inject --profile "%A_ScriptDir%\profile" --quiet && title %ComSpec%,,, minPID
+Run, %A_ScriptDir%\bin\mintty.exe -d -c "%A_ScriptDir%\profile\minttyrc" -e "%A_ScriptDir%\bin\winpty.exe" "%cmdExe%" %paramList% /K "%clinkExe%" inject --profile "%A_ScriptDir%\profile" --quiet && title %ComSpec%,,, minPID
 
 while (not WinExist("ahk_exe mintty.exe ahk_class ConsoleWindowClass") and not WinExist("ahk_pid %minPID%"))
 	Sleep, 0 ; Do nothing. Just wait for window. Works better than wait for a hidden window to exist
