@@ -12,11 +12,21 @@ SetWorkingDir, %A_ScriptDir%
 If (not InStr(FileExist("bin"), "D"))
 	FileCreateDir, bin
 
-If (not FileExist("bin\clink_x64.exe") and not FileExist("bin\clink_dll_x64.dll") and not FileExist("bin\cygwin1.dll") and not FileExist("bin\mintty.exe") and not FileExist("bin\winpty.exe") and not FileExist("bin\winpty.dll") and not FileExist("bin\winpty-agent.exe"))
+If (not FileExist("bin\clink_x64.exe") and not FileExist("bin\clink_dll_x64.dll"))
+{
+	DownloadLatestClink()
+	Sleep, 1000
+}
+
+If (not FileExist("bin\cygwin1.dll") and not FileExist("bin\mintty.exe"))
 {
 	DownloadLatestMintty()
+	Sleep, 1000
+}
+
+If (not FileExist("bin\winpty.exe") and not FileExist("bin\winpty.dll") and not FileExist("bin\winpty-agent.exe"))
+{
 	DownloadLatestWinPty()
-	DownloadLatestClink()
 	Sleep, 1000
 }
 
@@ -35,7 +45,7 @@ registerContextMenu=false
 
 
 --- Environment ---
-首先定义环境变量，然后才能把它们添加到PATH变量中去！
+首先定义环境变量，然后才能把它们添加到PATH变量中去
 
 cygwinDir=`%HOMEDRIVE`%\Tool\Cygwin\bin
 prependPath=
