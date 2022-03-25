@@ -2,29 +2,33 @@
 #NoEnv
 #SingleInstance, Force
 
-SetWorkingDir, %A_ScriptDir%
-
 /* First start setup
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Run this on first startup (if no files exist) ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 */
 If (not InStr(FileExist("bin"), "D"))
-	FileCreateDir, bin
+        FileCreateDir, bin
+If (not InStr(FileExist("tmp"), "D"))
+        FileCreateDir, tmp
+If (not InStr(FileExist("profile"), "D"))
+        FileCreateDir, profile
 
-If (not FileExist("bin\clink_x64.exe") and not FileExist("bin\clink_dll_x64.dll"))
+SetWorkingDir, %A_ScriptDir%\bin
+
+If (not FileExist("clink_x64.exe") or not FileExist("clink_dll_x64.dll"))
 {
 	DownloadLatestClink()
 	Sleep, 1000
 }
 
-If (not FileExist("bin\cygwin1.dll") and not FileExist("bin\mintty.exe"))
+If (not FileExist("cygwin1.dll") or not FileExist("mintty.exe"))
 {
 	DownloadLatestMintty()
 	Sleep, 1000
 }
 
-If (not FileExist("bin\winpty.exe") and not FileExist("bin\winpty.dll") and not FileExist("bin\winpty-agent.exe"))
+If (not FileExist("winpty.exe") or not FileExist("winpty.dll") or not FileExist("winpty-agent.exe"))
 {
 	DownloadLatestWinPty()
 	Sleep, 1000
@@ -32,10 +36,7 @@ If (not FileExist("bin\winpty.exe") and not FileExist("bin\winpty.dll") and not 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-If (not InStr(FileExist("profile"), "D"))
-	FileCreateDir, profile
-
-SetWorkingDir, profile
+SetWorkingDir, %A_ScriptDir%\profile
 If not FileExist("mincmd.ini")
 {
 	FileAppend,
@@ -62,7 +63,6 @@ type=cmd
 ----- AliasScript_Stop -----
 	), mincmd.ini
 }
-SetWorkingDir, %A_ScriptDir%
 
 contextMenu = false
 
@@ -71,7 +71,7 @@ EnvSection = false
 AliasSection = false
 AliasScriptSection = false
 
-Loop, read, %A_ScriptDir%\profile\mincmd.ini
+Loop, read, mincmd.ini
 {
     Loop, parse, A_LoopReadLine, %A_Tab%
     {
@@ -282,16 +282,19 @@ return
 
 DownloadLatestClink()
 {
-	URLDownloadToFile, https://github.com/mridgers/clink/releases/latest, clink_version.html
+	SetWorkingDir, %A_ScriptDir%\tmp
+	URLDownloadToFile, https://github.com/chrisant996/clink/releases/latest, clink_version.html
 	
-	Loop, read, %A_ScriptDir%\clink_version.html
+	Loop, read, clink_version.html
 	{
 		Loop, parse, A_LoopReadLine, %A_Tab%
 		{
-			If (RegExMatch(A_LoopReadLine, "Release.*[0-9.]+", clink_version) > 0)
+			If (RegExMatch(A_LoopReadLine, "clink.[\df.]+.zip", clink_version) > 0)
 			{
+				
 				found = true
-				RegExMatch(clink_version, "[0-9.]+", clink_version)
+				RegExMatch(clink_version, "[\df.]+\d+", clink_version2)
+				RegExMatch(clink_version2, "\d+[\d.]+\d+", clink_version1)
 				break
 			}
 		}
@@ -300,55 +303,72 @@ DownloadLatestClink()
 	}
 	
 	FileDelete, clink_version.html
-	URLDownloadToFile, https://github.com/mridgers/clink/releases/download/%clink_version%/clink_%clink_version%.zip, clink.zip
+	URLDownloadToFile, https://github.com/chrisant996/clink/releases/download/v%clink_version1%/clink%clink_version2%.zip, clink.zip
 	
 	Unzip("clink.zip")
 	FileDelete, clink.zip
 	
-	clinkDir = clink_%clink_version%
-	FileCopy, %clinkDir%\clink.lua, %A_ScriptDir%\bin
-	FileCopy, %clinkDir%\clink_dll*.dll, %A_ScriptDir%\bin
-	FileCopy, %clinkDir%\clink_x*.exe, %A_ScriptDir%\bin
-	
-	FileRemoveDir, %clinkDir%, 1
+	FileCopy, clink_x*.exe, %A_ScriptDir%\bin
+	FileCopy, clink_dll*.dll, %A_ScriptDir%\bin
+	FileCopy, clink.lua, %A_ScriptDir%\bin
 }
 
-DownloadLatestTarTool()
+DownloadLatestMintty()
 {
-	URLDownloadToFile, https://github.com/senthilrajasek/tartool/releases/latest, tarTool_version.html
+	SetWorkingDir, %A_ScriptDir%\tmp
+	URLDownloadToFile, https://github.com/mintty/wsltty/releases/latest, wslTty_version.html
 	
-	Loop, read, %A_ScriptDir%\tarTool_version.html
+	Loop, read, wslTty_version.html
 	{
 		Loop, parse, A_LoopReadLine, %A_Tab%
 		{
-			If (RegExMatch(A_LoopReadLine, "/.*TarTool.zip", tarTool_version) > 0)
+			If (RegExMatch(A_LoopReadLine, "Release.*[0-9.]+", wslTty_version) > 0)
 			{
-				found = true
-				;RegExMatch(tarTool_version, "[0-9.]+", tarTool_version)
+				foundwslTty = true
+				RegExMatch(wslTty_version, "[0-9.]+", wslTty_version)
 				break
 			}
 		}
-		If (%found% == true)
+		If (%foundwslTty% == true)
 			break
 	}
+	FileDelete, wslTty_version.html
 	
-	FileDelete, tarTool_version.html
-	URLDownloadToFile, https://github.com%tarTool_version%, tarTool.zip
-	Unzip("tarTool.zip")
-	
-	FileDelete, tarTool.zip
-	
-	FileCopy, TarTool.exe, %A_ScriptDir%\bin
-	FileCopy, ICSharpCode.SharpZipLib.dll, %A_ScriptDir%\bin
+	URLDownloadToFile, https://github.com/mintty/wsltty/releases/download/%wslTty_version%/wsltty-%wslTty_version%-x86_64.cab, wslTty.cab
+	Unzip("wslTty.cab")
+
+	FileCopy, cygwin1.dll, %A_ScriptDir%\bin
+	FileCopy, mintty.exe, %A_ScriptDir%\bin
+
+	FileCreateDir, %A_ScriptDir%\usr\share\mintty\lang
+	FileMove, %A_ScriptDir%\tmp\lang.zoo, %A_ScriptDir%\usr\share\mintty\lang\
+	SetWorkingDir, %A_ScriptDir%\usr\share\mintty\lang\
+	Run, %A_ScriptDir%\tmp\zoo.exe x lang.zoo,, Hide
+	FileDelete, lang.zoo
+
+	FileCreateDir, %A_ScriptDir%\usr\share\mintty\sounds
+	FileMove, %A_ScriptDir%\tmp\sounds.zoo, %A_ScriptDir%\usr\share\mintty\sounds\
+	SetWorkingDir, %A_ScriptDir%\usr\share\mintty\sounds\
+	Run, %A_ScriptDir%\tmp\zoo.exe x sounds.zoo,, Hide
+	FileDelete, sounds.zoo
+
+	FileCreateDir, %A_ScriptDir%\usr\share\mintty\themes
+	FileMove, %A_ScriptDir%\tmp\themes.zoo, %A_ScriptDir%\usr\share\mintty\themes\
+	SetWorkingDir, %A_ScriptDir%\usr\share\mintty\themes\
+	Run, %A_ScriptDir%\tmp\zoo.exe x themes.zoo,, Hide
+	FileDelete, themes.zoo
+
+	SetWorkingDir, %A_ScriptDir%
 }
 
 DownloadLatestWinPty()
 {
+	SetWorkingDir, %A_ScriptDir%\tmp
 	URLDownloadToFile, https://github.com/rprichard/winpty/releases/latest, winPty_version.html
 	foundWinPty = false
 	foundCygWin = false
 	
-	Loop, read, %A_ScriptDir%\winPty_version.html
+	Loop, read, %A_ScriptDir%\tmp\winPty_version.html
 	{
 		Loop, parse, A_LoopReadLine, %A_Tab%
 		{
@@ -374,65 +394,45 @@ DownloadLatestWinPty()
 	URLDownloadToFile, https://github.com/rprichard/winpty/releases/download/%winPty_version%/winpty-%winPty_version%-cygwin-%cygWin_version%-x64.tar.gz, winPty.tar.gz
 	
 	DownloadLatestTarTool()
-	RunWait, TarTool.exe winPty.tar.gz .\,, Hide
+	SetWorkingDir, %A_ScriptDir%\tmp
+	RunWait, tarTool.exe winPty.tar.gz .\,, Hide
 	
-	winPtyDir = winpty-%winPty_version%-cygwin-%cygWin_version%-x64
+	winPtyDir = %A_WorkingDir%\winpty-%winPty_version%-cygwin-%cygWin_version%-x64
 	FileCopy, %winPtyDir%\bin\winpty.*, %A_ScriptDir%\bin
 	FileCopy, %winPtyDir%\bin\winpty-agent.*, %A_ScriptDir%\bin
 	
 	FileRemoveDir, %winPtyDir%, 1
 	FileDelete, winPty.tar.gz
-	FileDelete, TarTool.exe
+	FileDelete, tarTool.exe
 	FileDelete, ICSharpCode.SharpZipLib.dll
 }
 
-DownloadLatestMintty()
+DownloadLatestTarTool()
 {
-	URLDownloadToFile, https://github.com/mintty/wsltty/releases/latest, wslTty_version.html
+	SetWorkingDir, %A_ScriptDir%\tmp
+	URLDownloadToFile, https://github.com/senthilrajasek/tartool/releases/latest, tarTool_version.html
 	
-	Loop, read, %A_ScriptDir%\wslTty_version.html
+	Loop, read, tarTool_version.html
 	{
 		Loop, parse, A_LoopReadLine, %A_Tab%
 		{
-			If (RegExMatch(A_LoopReadLine, "Release.*[0-9.]+", wslTty_version) > 0)
+			If (RegExMatch(A_LoopReadLine, "/.*TarTool.zip", tarTool_version) > 0)
 			{
-				foundwslTty = true
-				RegExMatch(wslTty_version, "[0-9.]+", wslTty_version)
+				found = true
+				;RegExMatch(tarTool_version, "[\d.]+", tarTool_version)
 				break
 			}
 		}
-		If (%foundwslTty% == true)
+		If (%found% == true)
 			break
 	}
 	
-	FileDelete, wslTty_version.html
-	
-	FileCreateDir, wsltty-%wslTty_version%-x86_64
-	SetWorkingDir, wsltty-%wslTty_version%-x86_64
-	
-	URLDownloadToFile, https://github.com/mintty/wsltty/releases/download/%wslTty_version%/wsltty-%wslTty_version%-x86_64.cab, wslTty.cab
-	Unzip("wslTty.cab")
-	SetWorkingDir, %A_ScriptDir%
-
-	wslTtyDir = wsltty-%wslTty_version%-x86_64
-	FileCopy, %wslTtyDir%\cygwin1.dll, %A_ScriptDir%\bin
-	FileCopy, %wslTtyDir%\mintty.exe, %A_ScriptDir%\bin
-	FileCopy, %wslTtyDir%\zoo.exe, %A_ScriptDir%\bin
-	FileCreateDir, usr\share\mintty\lang
-	FileCopy, %wslTtyDir%\lang.zoo, %A_ScriptDir%\usr\share\mintty\lang
-	SetWorkingDir,  %A_ScriptDir%\usr\share\mintty\lang
-	Run, %A_ScriptDir%\bin\zoo.exe x lang.zoo,, Hide
-	FileCreateDir, usr\share\mintty\sounds
-	FileCopy, %wslTtyDir%\sounds.zoo, %A_ScriptDir%\usr\share\mintty\sounds
-	SetWorkingDir,  %A_ScriptDir%\usr\share\mintty\sounds
-	Run, %A_ScriptDir%\bin\zoo.exe x sounds.zoo,, Hide
-	FileCreateDir, usr\share\mintty\themes
-	FileCopy, %wslTtyDir%\themes.zoo, %A_ScriptDir%\usr\share\mintty\themes
-	SetWorkingDir,  %A_ScriptDir%\usr\share\mintty\themes
-	Run, %A_ScriptDir%\bin\zoo.exe x themes.zoo,, Hide
-	SetWorkingDir,  %A_ScriptDir%
-	FileRemoveDir, %wslTtyDir%, 1
-	FileDelete, wslTty.cab
+	SetWorkingDir, %A_ScriptDir%\tmp
+	FileDelete, tarTool_version.html
+	URLDownloadToFile, https://github.com%tarTool_version%, tarTool.zip
+	SetWorkingDir, %A_ScriptDir%\tmp
+	Unzip("tarTool.zip")
+	FileDelete, tarTool.zip
 }
 
 Unzip(inputZipFile)
