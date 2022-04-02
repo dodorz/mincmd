@@ -41,10 +41,6 @@ If not FileExist("mincmd.ini")
 {
 	FileAppend,
 	(
---- Settings ---
-registerContextMenu=false
-
-
 --- Environment ---
 首先定义环境变量，然后才能把它们添加到PATH变量中去
 
@@ -63,8 +59,6 @@ type=cmd
 ----- AliasScript_Stop -----
 	), mincmd.ini
 }
-
-contextMenu = false
 
 SettingsSection = false
 EnvSection = false
@@ -210,31 +204,6 @@ Loop, read, mincmd.ini
 				SetWorkingDir, %A_ScriptDir%
 			}
 		}
-	}
-}
-
-oriVal = cmd.exe /s /k pushd "`%V"
-newVal = %A_ScriptFullPath%
-RegRead, currVal, HKCR, \Directory\shell\cmd\command
-
-If (%contextMenu% == true)
-{
-	If (currVal == oriVal)
-	{
-		RegWrite, REG_SZ, HKEY_CLASSES_ROOT\Directory\shell\cmd\command,, %newVal%
-		RegWrite, REG_SZ, HKEY_CLASSES_ROOT\Drive\shell\cmd\command,, %newVal%
-		If (ErrorLevel == 1)
-			MsgBox, Bitte als Admin starten, damit mincmd im Kontextmenü auftaucht!
-	}
-}
-Else
-{
-	If (currVal == newVal)
-	{
-		RegWrite, REG_SZ, HKEY_CLASSES_ROOT\Directory\shell\cmd\command,, %oriVal%
-		RegWrite, REG_SZ, HKEY_CLASSES_ROOT\Drive\shell\cmd\command,, %oriVal%
-		If (ErrorLevel == 1)
-			MsgBox, Bitte als Admin starten!
 	}
 }
 
